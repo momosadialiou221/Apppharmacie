@@ -100,17 +100,16 @@ class StreamlitPharmacyAssistant:
         if 'user_location' not in st.session_state:
             st.session_state.user_location = None
     
-    @st.cache_resource
-    def get_db_connection(_self):
-        """Connexion à la base de données avec cache"""
-        conn = sqlite3.connect(_self.db_path)
+    def get_db_connection(self):
+        """Connexion à la base de données thread-safe"""
+        conn = sqlite3.connect(self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         return conn
     
     @st.cache_data(ttl=3600)  # Cache pendant 1 heure
     def load_all_products(_self):
         """Charge tous les produits avec mise en cache"""
-        conn = sqlite3.connect(_self.db_path)
+        conn = sqlite3.connect(_self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         produits = conn.execute('SELECT * FROM produits ORDER BY nom').fetchall()
         conn.close()
@@ -119,7 +118,7 @@ class StreamlitPharmacyAssistant:
     @st.cache_data(ttl=3600)  # Cache pendant 1 heure
     def load_all_pharmacies(_self):
         """Charge toutes les pharmacies avec mise en cache"""
-        conn = sqlite3.connect(_self.db_path)
+        conn = sqlite3.connect(_self.db_path, check_same_thread=False)
         conn.row_factory = sqlite3.Row
         pharmacies = conn.execute('SELECT * FROM pharmacies ORDER BY ville, nom').fetchall()
         conn.close()
