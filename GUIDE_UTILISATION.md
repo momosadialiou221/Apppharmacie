@@ -1,130 +1,144 @@
-# Guide d'Utilisation - Assistant Pharmacien Sénégal
+# 📖 Guide d'Utilisation - Assistant Pharmacien Sénégal
 
-## 🎯 Objectif
-Cet assistant aide les pharmaciens sénégalais à conseiller leurs clients sur les produits cosmétiques adaptés à leurs problèmes de peau, tout en localisant les pharmacies proches.
+## 🚀 Démarrage
 
-## 🚀 Installation et Lancement
-
-### Prérequis
-- Python 3.7 ou plus récent
-- Connexion internet pour la géolocalisation
-
-### Installation
+### Lancement Rapide
 ```bash
-# Cloner ou télécharger le projet
-cd assistant-pharmacien-senegal
+python run_streamlit.py
+```
+Ouvre automatiquement http://localhost:8501
 
-# Installer les dépendances
-pip install -r requirements.txt
-
-# Lancer l'application
-python run.py
+### Lancement Manuel
+```bash
+streamlit run app_streamlit.py
 ```
 
-### Accès
-- Ouvrir un navigateur web
-- Aller à l'adresse : `http://localhost:5000`
+## 💬 Utiliser le Chat
 
-## 📱 Utilisation de l'Interface
+### 1. Décrire Votre Problème
+Exemples de messages :
+- "J'ai des boutons sur le visage depuis 2 semaines"
+- "Ma peau est très sèche et tiraille"
+- "Des taches brunes sur les joues"
+- "Rides autour des yeux"
 
-### 1. Diagnostic Cosmétique
-- **Décrire le problème** : Saisir les symptômes (ex: "acné sur le visage", "peau très sèche")
-- **Type de peau** : Sélectionner parmi normale, sèche, grasse, mixte, sensible
-- **Âge** : Indiquer l'âge du patient (optionnel)
-- Cliquer sur "Obtenir des Recommandations"
+### 2. Renseigner Votre Profil
+Dans la barre latérale :
+- **Type de peau** : Normale, Sèche, Grasse, Mixte, Sensible
+- **Âge** : Pour des conseils adaptés
+- **Localisation** : Pour trouver les pharmacies proches
 
-### 2. Localisation des Pharmacies
-- Cliquer sur "Utiliser ma Position" pour activer la géolocalisation
-- Cocher "Pharmacies ouvertes 24h/24" si nécessaire
-- Les pharmacies s'affichent automatiquement avec leur distance
+### 3. Recevoir des Recommandations
+Le chatbot vous propose :
+- Diagnostic du problème
+- 3-5 produits recommandés avec prix
+- Conseils d'utilisation
+- Pharmacies les plus proches
 
-### 3. Résultats
-- **Conseils personnalisés** : Recommandations d'hygiène et de soins
-- **Produits recommandés** : Liste avec prix, marques et descriptions
-- **Pharmacies proches** : Classées par distance avec coordonnées
+## 🛍️ Explorer le Catalogue
 
-## 🏥 Pharmacies Incluses
+### Filtres Disponibles
+- **Type de peau** : Tous, Normale, Sèche, Grasse, Mixte, Sensible
+- **Problème** : Acné, Sécheresse, Taches, Rides, Sensibilité
+- **Prix** : Gamme de prix en FCFA
 
-### Dakar
-- Pharmacie du Plateau (24h/24)
-- Pharmacie Sandaga (24h/24)
-- Pharmacie Nationale
-- Pharmacie Almadies
-- Pharmacie Liberté 6
+### Informations Produit
+Chaque produit affiche :
+- Nom et marque
+- Prix en FCFA
+- Type de peau adapté
+- Problèmes traités
+- Ingrédients clés
+- Origine africaine (si applicable)
 
-### Autres Villes
-- Thiès, Saint-Louis, Kaolack avec pharmacies locales
+## 🏥 Trouver une Pharmacie
 
-## 💊 Produits Cosmétiques
+### Recherche par Localisation
+1. Cliquez sur "Activer la géolocalisation"
+2. Autorisez l'accès à votre position
+3. Les pharmacies s'affichent par ordre de distance
 
-### Marques Disponibles
-- La Roche-Posay, Vichy, Eucerin, Avène
-- Fair & White, Caro White, Makari
-- Nivea, Palmer's, Sebamed
+### Filtres
+- **Ouvert 24h/24** : Pharmacies de garde
+- **Ville** : Dakar, Thiès, Saint-Louis, etc.
+- **Quartier** : Plateau, Liberté, Almadies, etc.
 
-### Types de Produits
-- Nettoyants et gels purifiants
-- Crèmes hydratantes
-- Sérums anti-taches
-- Protections solaires
-- Laits corporels éclaircissants
+### Informations Affichées
+- Nom de la pharmacie
+- Adresse complète
+- Téléphone
+- Horaires
+- Distance (si géolocalisé)
+- Ouverture 24h/24
 
-## 🔧 Problèmes Courants
+## 📊 Analytics
 
-### Géolocalisation ne fonctionne pas
-- Vérifier les autorisations du navigateur
-- Utiliser HTTPS en production
-- Saisir manuellement la ville si nécessaire
+### Statistiques Disponibles
+- Répartition des produits par type de peau
+- Distribution des prix
+- Produits africains vs importés
+- Pharmacies par ville
+- Pharmacies 24h/24
 
-### Aucun produit trouvé
-- Reformuler la description du problème
-- Utiliser des termes simples (acné, sèche, taches)
-- Vérifier l'orthographe
+### Graphiques Interactifs
+- Survolez pour voir les détails
+- Cliquez sur la légende pour filtrer
+- Zoomez et déplacez les graphiques
 
-### Pharmacies non trouvées
-- Augmenter le rayon de recherche
-- Vérifier la position GPS
-- Essayer sans le filtre 24h/24
+## 💡 Conseils d'Utilisation
 
-## 📊 Administration
+### Pour de Meilleurs Résultats
+1. **Soyez précis** dans la description de votre problème
+2. **Mentionnez la durée** des symptômes (depuis quand)
+3. **Renseignez votre profil** pour des conseils personnalisés
+4. **Activez la géolocalisation** pour trouver les pharmacies proches
 
-### Ajouter des Produits
-Modifier le fichier `data_init.py` et relancer :
-```python
+### Exemples de Questions
+- "Quelle crème pour peau sèche à moins de 10000 FCFA ?"
+- "Produit anti-taches avec ingrédients africains"
+- "Pharmacie ouverte maintenant à Liberté 6"
+- "Routine complète pour peau grasse et acné"
+
+## 🔧 Résolution de Problèmes
+
+### L'application ne démarre pas
+```bash
+# Vérifier les dépendances
+pip install streamlit pandas plotly
+
+# Réinitialiser la base de données
 python data_init.py
 ```
 
-### Ajouter des Pharmacies
-Utiliser les coordonnées GPS exactes pour une meilleure précision.
+### Erreur de base de données
+```bash
+# Supprimer et recréer la base
+del pharmacy_assistant.db
+python data_init.py
+```
 
-### Base de Données
-- Fichier : `pharmacy_assistant.db`
-- Sauvegarde automatique des consultations
-- Statistiques d'utilisation disponibles
+### Port déjà utilisé
+```bash
+# Utiliser un autre port
+streamlit run app_streamlit.py --server.port 8502
+```
 
-## 🌍 Adaptation Locale
+## 📱 Version Mobile
 
-### Monnaie
-- Prix en Francs CFA (FCFA)
-- Gammes de prix adaptées au marché sénégalais
+L'application est responsive et fonctionne sur :
+- Smartphones
+- Tablettes
+- Desktop
 
-### Langues
-- Interface en français
-- Termes médicaux locaux acceptés
+Utilisez le menu hamburger (☰) pour accéder à la navigation sur mobile.
 
-### Géographie
-- Coordonnées GPS du Sénégal
-- Villes principales intégrées
+## 🆘 Support
 
-## 📞 Support
+Pour toute question ou problème :
+1. Consultez ce guide
+2. Vérifiez les messages d'erreur
+3. Redémarrez l'application
 
-Pour toute question ou amélioration :
-- Consulter les logs de l'application
-- Vérifier la configuration dans `config.py`
-- Adapter les données selon les besoins locaux
+---
 
-## 🔒 Sécurité
-
-- Aucune donnée personnelle stockée
-- Géolocalisation temporaire uniquement
-- Base de données locale sécurisée
+**Bon usage de votre Assistant Pharmacien ! 🏥**

@@ -1,201 +1,153 @@
-# 🤖 Assistant Pharmacien IA - Sénégal
+# 🏥 Assistant Pharmacien Sénégal
 
-Un chatbot d'assistance **intelligent avec IA/NLP** pour les pharmaciens sénégalais, spécialisé dans le conseil de produits cosmétiques avec géolocalisation avancée des pharmacies.
+Application web intelligente pour conseiller les clients sur les produits cosmétiques et localiser les pharmacies au Sénégal.
 
-## ✨ Fonctionnalités Avancées
+## ✨ Fonctionnalités
 
-### 🧠 Intelligence Artificielle
-- 🤖 **Traitement du langage naturel** en français
-- 🔍 **Compréhension contextuelle** des problèmes de peau
-- 💬 **Conversation naturelle** avec réponses personnalisées
-- 🎯 **Détection d'intentions** (recherche produit, localisation, prix...)
-- 📚 **Apprentissage** des préférences utilisateur
+### 💬 Chat Intelligent
+- Diagnostic des problèmes de peau
+- Recommandations personnalisées selon l'âge et le type de peau
+- Conseils d'utilisation des produits
 
-### 💊 Recommandations Cosmétiques
-- **40+ produits cosmétiques** adaptés au marché sénégalais
-- **Scoring intelligent** basé sur le profil utilisateur
-- **Conseils personnalisés** selon l'âge et le type de peau
-- **Marques premium et accessibles** (La Roche-Posay, Vichy, Fair & White...)
+### 🛍️ Catalogue Produits
+- **60+ produits cosmétiques** adaptés au marché sénégalais
+- Focus sur les ingrédients africains (karité, baobab, aloe vera)
+- Gamme de prix en FCFA (2000 - 35000)
+- Filtres par type de peau et problème
 
-### 📍 Géolocalisation Intelligente
-- **100+ pharmacies à Dakar** géolocalisées
-- **15 pharmacies 24h/24** identifiées
-- **Calcul de distances** en temps réel
-- **Filtres avancés** (horaires, services spéciaux)
+### 📍 Géolocalisation
+- **100+ pharmacies** au Sénégal
+- **17 pharmacies ouvertes 24h/24**
+- Calcul de distance en temps réel
+- Informations de contact et horaires
 
-## 🚀 Versions Disponibles
+### 📊 Analytics
+- Statistiques des produits
+- Graphiques interactifs
+- Analyse des tendances
 
-### 🤖 Version IA Avancée (Recommandée)
+## 🚀 Démarrage Rapide
+
+### Installation
 ```bash
-# Installation des dépendances IA
-python install_nlp.py
-
-# Lancement version IA
-python app_advanced.py
+pip install streamlit pandas plotly
 ```
-**Interface IA :** http://localhost:5000
 
-### 🔄 Démarrage Automatique
+### Lancement
 ```bash
-python start.py
-```
-Détecte automatiquement les capacités et lance la meilleure version.
+# Méthode automatique
+python run_streamlit.py
 
-### 📱 Version Simple (Compatibilité)
+# OU méthode manuelle
+streamlit run app_streamlit.py
+```
+
+L'application sera accessible sur **http://localhost:8501**
+
+### Version Chat Alternative
 ```bash
-python app_simple.py
+python app_chat.py
 ```
-**Interface basique :** http://localhost:8000
+Accessible sur **http://localhost:8000**
 
-## 📊 Base de Données Étendue
+## 📦 Structure du Projet
 
-### Statistiques Impressionnantes
-- **44 produits cosmétiques** de qualité
-- **60 pharmacies** au Sénégal
-- **54 pharmacies à Dakar** (couvrant tous les quartiers)
+```
+Apppharmacie/
+├── app_streamlit.py          # Application Streamlit principale
+├── app_chat.py               # Version chat conversationnel
+├── run_streamlit.py          # Script de lancement
+├── start.py                  # Démarrage automatique
+├── data_init.py              # Initialisation base de données
+├── pharmacy_assistant.db     # Base de données SQLite
+├── requirements.txt          # Dépendances Python
+├── .streamlit/
+│   └── config.toml          # Configuration Streamlit
+├── templates/
+│   └── index_chat.html      # Template chat
+├── static/
+│   └── script_chat.js       # JavaScript chat
+└── models/
+    └── database.py          # Modèles de données
+```
+
+## 🌐 Déploiement sur Streamlit Cloud
+
+1. Poussez votre code sur GitHub
+2. Allez sur https://streamlit.io/cloud
+3. Connectez votre repository
+4. Sélectionnez `app_streamlit.py` comme fichier principal
+5. Déployez !
+
+L'application se redéploie automatiquement à chaque push.
+
+## 📊 Base de Données
+
+### Produits
+- **60+ produits cosmétiques**
+- Marques : La Roche-Posay, Vichy, CeraVe, Fair & White, etc.
+- Ingrédients africains : Beurre de karité, huile de baobab, aloe vera
+- Prix adaptés au marché sénégalais
+
+### Pharmacies
+- **100+ pharmacies** géolocalisées
+- Couverture complète de Dakar et principales villes
 - **17 pharmacies 24h/24** pour les urgences
+- Informations de contact et services
 
-### Quartiers de Dakar Couverts
-| Quartier | Pharmacies | 24h/24 |
-|----------|------------|--------|
-| **Plateau/Centre** | 11 | 3 |
-| **Liberté/Mermoz** | 7 | 2 |
-| **Parcelles/Pikine** | 8 | 3 |
-| **Almadies/Ngor** | 5 | 2 |
-| **Médina/Gueule Tapée** | 4 | 1 |
-| **Autres quartiers** | 19 | 6 |
+## 🛠️ Technologies
 
-### Gammes de Prix (FCFA)
-- **Économique** (2000-5000) : Savons, produits de base
-- **Moyen** (5000-15000) : Crèmes, laits corporels
-- **Premium** (15000-35000) : Sérums, soins anti-âge
+- **Frontend** : Streamlit, HTML/CSS/JavaScript
+- **Backend** : Python, Flask
+- **Base de données** : SQLite
+- **Visualisation** : Plotly
+- **Géolocalisation** : Geopy
 
-## 🎯 Capacités IA/NLP
+## 📝 Guide d'Utilisation
 
-### Compréhension Naturelle
-```
-Utilisateur: "Bonjour, j'ai des boutons qui apparaissent sur mon front"
-IA: "Je vois que vous avez des préoccupations concernant l'acné. 
-     Avec votre peau grasse, voici mes recommandations personnalisées..."
-```
-
-### Détection Intelligente
-- **Problèmes de peau** : acné, sécheresse, taches, rides, sensibilité
-- **Types de peau** : normale, sèche, grasse, mixte, sensible
-- **Intentions** : recherche produit, localisation pharmacie, conseil prix
-- **Contexte** : âge, historique, préférences
-
-### Conseils Personnalisés
-- **Selon l'âge** : adolescent, jeune adulte, mature, senior
-- **Selon le problème** : routine adaptée, ingrédients recommandés
-- **Selon la saison** : protection solaire, hydratation hivernale
-
-## 🛠️ Architecture Technique
-
-### Technologies IA
-- **NLTK** : Traitement du langage naturel
-- **Scikit-learn** : Machine learning et scoring
-- **TextBlob** : Analyse de sentiment
-- **FuzzyWuzzy** : Recherche floue et synonymes
-
-### Backend Intelligent
-```
-assistant-pharmacien-ia/
-├── 🤖 nlp_engine.py          # Moteur IA/NLP
-├── 🚀 app_advanced.py        # Application IA complète
-├── 📊 data_init.py           # Base étendue (100+ pharmacies)
-├── 🧪 demo_advanced.py       # Démonstration IA
-├── ⚙️  install_nlp.py         # Installation automatique IA
-├── 📱 templates/
-│   └── index_advanced.html   # Interface chat intelligent
-├── 🎨 static/
-│   ├── style_advanced.css    # Design moderne
-│   └── script_advanced.js    # Chat temps réel
-└── 📚 requirements_advanced.txt # Dépendances IA
-```
-
-## 🧪 Tests et Démonstrations
-
-### Test du Moteur IA
-```bash
-python nlp_engine.py
-```
-
-### Démonstration Complète
-```bash
-python demo_advanced.py
-```
-
-### Tests Automatisés
-```bash
-python test_app.py
-```
-
-## 💬 Exemples d'Interactions IA
-
-### Diagnostic Intelligent
-```
-👤 "Ma peau tiraille après la douche et j'ai des plaques rouges"
-🤖 "Je détecte des problèmes de peau sèche et sensible. À 35 ans, 
-    voici ma routine personnalisée : nettoyant doux, crème réparatrice 
-    aux céramides, et évitez l'eau trop chaude..."
-```
-
-### Recherche Contextuelle
-```
-👤 "Où trouver une pharmacie ouverte maintenant à Liberté 6 ?"
-🤖 "J'ai trouvé 3 pharmacies ouvertes près de Liberté 6, dont 
-    2 ouvertes 24h/24. La plus proche est à 0.8km..."
-```
-
-### Conseils Experts
-```
-👤 "Comment utiliser un sérum à la vitamine C ?"
-🤖 "Appliquez le sérum vitamine C le matin sur peau propre, 
-    avant la crème hydratante. Commencez 3x/semaine puis 
-    augmentez progressivement. Protection solaire obligatoire !"
-```
-
-## 🌟 Avantages de la Version IA
+### Pour les Clients
+1. Décrivez votre problème de peau dans le chat
+2. Renseignez votre profil (âge, type de peau)
+3. Recevez des recommandations personnalisées
+4. Localisez les pharmacies les plus proches
 
 ### Pour les Pharmaciens
-- **Diagnostic assisté** par IA pour conseils précis
-- **Base de connaissances** cosmétiques étendue
-- **Formation continue** via les interactions
-- **Gain de temps** avec recommandations automatiques
+1. Consultez le catalogue complet
+2. Filtrez par type de peau ou problème
+3. Accédez aux informations détaillées des produits
+4. Visualisez les statistiques et tendances
 
-### Pour les Patients
-- **Conversation naturelle** sans jargon technique
-- **Conseils 24h/24** même pharmacies fermées
-- **Personnalisation poussée** selon profil unique
-- **Éducation** sur les soins de peau
+## 🔧 Configuration
 
-### Pour le Secteur
-- **Innovation technologique** dans la pharmacie sénégalaise
-- **Standardisation** des conseils cosmétiques
-- **Accessibilité** améliorée aux soins de qualité
-- **Données** pour améliorer l'offre produits
+### Variables d'Environnement
+Aucune configuration requise pour l'utilisation locale.
 
-## 🔮 Roadmap IA
+### Base de Données
+Pour réinitialiser la base de données :
+```bash
+python data_init.py
+```
 
-### Court Terme
-- **Reconnaissance vocale** pour interaction mains-libres
-- **Photos de peau** pour diagnostic visuel
-- **Notifications** personnalisées de routine
-- **Historique intelligent** des consultations
+## 📱 Versions Disponibles
 
-### Moyen Terme
-- **Chatbot WhatsApp** pour accessibilité mobile
-- **IA prédictive** pour anticiper les besoins
-- **Intégration stocks** pharmacies en temps réel
-- **Téléconsultation** avec dermatologues
+### Version Streamlit (Recommandée)
+- Interface moderne et responsive
+- Analytics et graphiques
+- Optimisée pour desktop et mobile
 
-### Long Terme
-- **Vision par ordinateur** pour analyse de peau
-- **IA générative** pour routines sur-mesure
-- **Expansion** Afrique de l'Ouest francophone
-- **Marketplace** cosmétiques intelligente
+### Version Chat
+- Interface conversationnelle
+- Bulles de chat fluides
+- Focus sur l'interaction
+
+## 🤝 Contribution
+
+Ce projet est développé pour améliorer l'accès aux soins cosmétiques au Sénégal.
+
+## 📄 Licence
+
+MIT License
 
 ---
 
-*🇸🇳 Fier d'être une innovation 100% sénégalaise pour révolutionner les soins cosmétiques en Afrique !*
+**🇸🇳 Fait avec ❤️ pour le Sénégal**
