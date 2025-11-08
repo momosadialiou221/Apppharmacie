@@ -24,6 +24,16 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Cacher le menu et footer Streamlit pour une meilleure expérience
+hide_streamlit_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+.stDeployButton {display:none;}
+</style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 # CSS personnalisé
 st.markdown("""
 <style>
@@ -102,11 +112,17 @@ class StreamlitPharmacyAssistant:
         if 'user_location' not in st.session_state:
             st.session_state.user_location = None
         if 'chat_state' not in st.session_state:
-            st.session_state.chat_state = 'initial'  # initial, asking_duration, asking_location, asking_aspect, ready
+            st.session_state.chat_state = 'initial'
         if 'current_problem' not in st.session_state:
             st.session_state.current_problem = {}
         if 'pending_questions' not in st.session_state:
             st.session_state.pending_questions = []
+        if 'messages' not in st.session_state:
+            st.session_state.messages = [
+                {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien. Décrivez-moi votre problème de peau et je vous aiderai à trouver les meilleurs produits."}
+            ]
+        if 'awaiting_response' not in st.session_state:
+            st.session_state.awaiting_response = False
     
     def get_db_connection(self):
         """Connexion à la base de données thread-safe"""
@@ -461,143 +477,174 @@ def main():
     with tab1:
         st.header("💬 Chat avec l'Assistant")
         
-        # Afficher les questions en attente
-        if st.session_state.pending_questions:
-            st.info(f"💬 {st.session_state.pending_questions[0]}")
+        # Container pour les messages avec hauteur fixe et scroll
+        chat_container = st.container(height=500)
         
-        # Zone de saisie
-        col1, col2 = st.columns([4, 1])
+        with chat_container:
+            # Afficher tous les messages de la conversation avec st.chat_message
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
         
-        with col1:
-            if st.session_state.chat_state == 'initial':
-                placeholder_text = "Ex: J'ai des boutons sur le visage depuis 2 semaines..."
-                label_text = "Décrivez votre problème de peau :"
-            else:
-                placeholder_text = "Votre réponse..."
-                label_text = "Répondez à la question ci-dessus :"
+        # Suggestions rapides (seulement au début)
+        if len(st.session_state.messages) == 1:
+            st.markdown("**💡 Suggestions rapides :**")
+            col1, col2, col3 = st.columns(3)
             
-            user_message = st.text_area(
-                label_text,
-                placeholder=placeholder_text,
-                height=100,
-                key=f"user_input_{st.session_state.chat_state}"
-            )
+            with col1:
+                if st.button("🔴 Problème d'acné", use_container_width=True):
+                    prompt = "J'ai de l'acné sur le visage"
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    st.rerun()
+            
+            with col2:
+                if st.button("💧 Peau sèche", use_container_width=True):
+                    prompt = "Ma peau est très sèche"
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    st.rerun()
+            
+            with col3:
+                if st.button("🟤 Taches brunes", use_container_width=True):
+                    prompt = "J'ai des taches brunes"
+                    st.session_state.messages.append({"role": "user", "content": prompt})
+                    st.rerun()
         
-        with col2:
-            st.markdown("<br>", unsafe_allow_html=True)
-            button_label = "🚀 Analyser" if st.session_state.chat_state == 'initial' else "📤 Envoyer"
-            if st.button(button_label, type="primary", use_container_width=True):
-                if user_message.strip():
-                    # Traitement selon l'état du chat
-                    with st.spinner("🤖 Analyse en cours..."):
-                        
-                        if st.session_state.chat_state == 'initial':
-                            # Premier message - analyser et poser des questions si nécessaire
-                            st.session_state.current_problem['initial_message'] = user_message
-                            missing_info = assistant.analyze_missing_info(user_message)
-                            
-                            if missing_info:
-                                # Générer les questions de suivi
-                                st.session_state.pending_questions = [
-                                    assistant.generate_follow_up_question(info) 
-                                    for info in missing_info
-                                ]
-                                st.session_state.chat_state = 'asking_questions'
-                                st.session_state.current_problem['responses'] = []
-                                st.rerun()
-                            else:
-                                # Toutes les infos sont présentes, générer les recommandations
-                                st.session_state.chat_state = 'ready'
-                        
-                        elif st.session_state.chat_state == 'asking_questions':
-                            # Enregistrer la réponse
-                            st.session_state.current_problem['responses'].append(user_message)
-                            st.session_state.pending_questions.pop(0)
-                            
-                            if not st.session_state.pending_questions:
-                                # Toutes les questions ont été répondues
-                                st.session_state.chat_state = 'ready'
-                            else:
-                                st.rerun()
-                        
-                        # Si prêt, générer les recommandations
-                        if st.session_state.chat_state == 'ready':
-                            # Combiner tous les messages
-                            full_message = st.session_state.current_problem['initial_message']
-                            if 'responses' in st.session_state.current_problem:
-                                full_message += " " + " ".join(st.session_state.current_problem['responses'])
-                            
-                            # Extraction de la durée
-                            duration = assistant.extract_symptom_duration(full_message)
-                            
-                            # Recherche de produits
-                            produits = assistant.search_products(
-                                full_message,
-                                st.session_state.user_profile.get('type_peau'),
-                                st.session_state.user_profile.get('budget_max')
-                            )
-                            
-                            # Génération de conseils
-                            conseils = assistant.generate_personalized_advice(
-                                full_message,
-                                st.session_state.user_profile.get('type_peau'),
-                                st.session_state.user_profile.get('age'),
-                                duration
-                            )
-                            
-                            # Ajouter à l'historique
-                            conversation_entry = {
-                                'user': full_message,
-                                'duration': duration,
-                                'produits': produits,
-                                'conseils': conseils,
-                                'timestamp': datetime.now()
-                            }
-                            st.session_state.conversation_history.append(conversation_entry)
-                            
-                            # Sauvegarder dans CSV
-                            csv_data = {
-                                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                'age': st.session_state.user_profile.get('age', ''),
-                                'type_peau': st.session_state.user_profile.get('type_peau', ''),
-                                'probleme_initial': st.session_state.current_problem['initial_message'],
-                                'duree': duration['texte'] if duration else '',
-                                'localisation': full_message,  # Contient la localisation dans les réponses
-                                'aspect': full_message,  # Contient l'aspect dans les réponses
-                                'produits_recommandes': ', '.join([p['nom'] for p in produits[:5]]),
-                                'nombre_produits': len(produits),
-                                'budget_max': st.session_state.user_profile.get('budget_max', ''),
-                                'session_id': st.session_state.get('session_id', id(st.session_state))
-                            }
-                            assistant.save_conversation_to_csv(csv_data)
-                            
-                            # Réinitialiser l'état du chat
-                            st.session_state.chat_state = 'initial'
-                            st.session_state.current_problem = {}
-                            st.session_state.pending_questions = []
-                            
-                            st.success("✅ Analyse terminée ! Consultez les recommandations ci-dessous.")
-                            st.rerun()
+        # Zone de saisie en bas (toujours visible)
+        user_input = st.chat_input("Tapez votre message ici...")
         
-        # Suggestions rapides
-        st.markdown("**💡 Suggestions rapides :**")
-        col1, col2, col3 = st.columns(3)
+        if user_input:
+            # Ajouter le message utilisateur
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            
+            # Traiter le message
+            # Déterminer l'état de la conversation
+            if st.session_state.chat_state == 'initial':
+                # Premier message - analyser
+                st.session_state.current_problem['initial_message'] = user_input
+                st.session_state.current_problem['all_messages'] = [user_input]
+                missing_info = assistant.analyze_missing_info(user_input)
+                
+                if missing_info:
+                    # Poser la première question
+                    question = assistant.generate_follow_up_question(missing_info[0])
+                    st.session_state.messages.append({"role": "assistant", "content": question})
+                    st.session_state.pending_questions = missing_info[1:]  # Garder les autres questions
+                    st.session_state.chat_state = 'asking_questions'
+                    st.session_state.awaiting_response = True
+                else:
+                    # Toutes les infos présentes, générer recommandations
+                    st.session_state.chat_state = 'ready'
+            
+            elif st.session_state.chat_state == 'asking_questions':
+                # Enregistrer la réponse
+                st.session_state.current_problem['all_messages'].append(user_input)
+                
+                if st.session_state.pending_questions:
+                    # Poser la question suivante
+                    question = assistant.generate_follow_up_question(st.session_state.pending_questions[0])
+                    st.session_state.messages.append({"role": "assistant", "content": question})
+                    st.session_state.pending_questions.pop(0)
+                else:
+                    # Toutes les questions répondues
+                    st.session_state.chat_state = 'ready'
+            
+            # Générer les recommandations si prêt
+            if st.session_state.chat_state == 'ready':
+                # Combiner tous les messages
+                full_message = " ".join(st.session_state.current_problem.get('all_messages', [user_input]))
+                
+                # Extraction de la durée
+                duration = assistant.extract_symptom_duration(full_message)
+                
+                # Recherche de produits
+                produits = assistant.search_products(
+                    full_message,
+                    st.session_state.user_profile.get('type_peau'),
+                    st.session_state.user_profile.get('budget_max')
+                )
+                
+                # Génération de conseils
+                conseils = assistant.generate_personalized_advice(
+                    full_message,
+                    st.session_state.user_profile.get('type_peau'),
+                    st.session_state.user_profile.get('age'),
+                    duration
+                )
+                
+                # Créer la réponse complète
+                response = "✅ **Analyse terminée !**\n\n"
+                
+                if duration:
+                    jours = duration['jours']
+                    category, _ = assistant.categorize_duration(jours)
+                    response += f"📅 **Durée :** {category}\n\n"
+                
+                response += f"💊 **J'ai trouvé {len(produits)} produits adaptés à votre problème.**\n\n"
+                
+                if conseils:
+                    response += "💡 **Mes conseils personnalisés :**\n"
+                    for i, conseil in enumerate(conseils[:5], 1):
+                        response += f"{i}. {conseil}\n"
+                    response += "\n"
+                
+                if produits:
+                    response += "🛍️ **Top 3 produits recommandés :**\n"
+                    for i, produit in enumerate(produits[:3], 1):
+                        prix = f"{produit['prix_min']}-{produit['prix_max']} FCFA" if produit['prix_min'] else "Prix variable"
+                        response += f"\n**{i}. {produit['nom']}** ({produit['marque']})\n"
+                        response += f"   💰 {prix}\n"
+                        if produit['description']:
+                            response += f"   📝 {produit['description'][:100]}...\n"
+                
+                response += "\n\n📋 Consultez l'onglet **Produits** pour voir tous les détails !"
+                
+                st.session_state.messages.append({"role": "assistant", "content": response})
+                
+                # Sauvegarder dans l'historique
+                conversation_entry = {
+                    'user': full_message,
+                    'duration': duration,
+                    'produits': produits,
+                    'conseils': conseils,
+                    'timestamp': datetime.now()
+                }
+                st.session_state.conversation_history.append(conversation_entry)
+                
+                # Sauvegarder dans CSV
+                csv_data = {
+                    'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                    'age': st.session_state.user_profile.get('age', ''),
+                    'type_peau': st.session_state.user_profile.get('type_peau', ''),
+                    'probleme_initial': st.session_state.current_problem.get('initial_message', user_input),
+                    'duree': duration['texte'] if duration else '',
+                    'localisation': full_message,
+                    'aspect': full_message,
+                    'produits_recommandes': ', '.join([p['nom'] for p in produits[:5]]),
+                    'nombre_produits': len(produits),
+                    'budget_max': st.session_state.user_profile.get('budget_max', ''),
+                    'session_id': st.session_state.get('session_id', id(st.session_state))
+                }
+                assistant.save_conversation_to_csv(csv_data)
+                
+                # Réinitialiser pour une nouvelle conversation
+                st.session_state.chat_state = 'initial'
+                st.session_state.current_problem = {}
+                st.session_state.pending_questions = []
+                st.session_state.awaiting_response = False
+            
+            # Recharger pour afficher les nouveaux messages
+            st.rerun()
         
-        with col1:
-            if st.button("🔴 Problème d'acné"):
-                st.session_state.quick_message = "J'ai de l'acné depuis 1 mois"
-        
-        with col2:
-            if st.button("💧 Peau sèche"):
-                st.session_state.quick_message = "Ma peau est très sèche depuis l'harmattan"
-        
-        with col3:
-            if st.button("🟤 Taches brunes"):
-                st.session_state.quick_message = "J'ai des taches brunes depuis 6 mois"
-        
-        # Affichage de l'historique de conversation
-        if st.session_state.conversation_history:
-            st.markdown("---")
+        # Bouton pour nouvelle conversation
+        if len(st.session_state.messages) > 1:
+            if st.button("🔄 Nouvelle conversation", use_container_width=True):
+                st.session_state.messages = [
+                    {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien. Décrivez-moi votre problème de peau et je vous aiderai à trouver les meilleurs produits."}
+                ]
+                st.session_state.chat_state = 'initial'
+                st.session_state.current_problem = {}
+                st.session_state.pending_questions = []
+                st.rerun()
             st.header("💬 Historique de Conversation")
             
             for i, conv in enumerate(reversed(st.session_state.conversation_history[-5:])):
