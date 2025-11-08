@@ -10,6 +10,8 @@ import pandas as pd
 import json
 import re
 import math
+import csv
+import os
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
@@ -99,6 +101,12 @@ class StreamlitPharmacyAssistant:
             st.session_state.user_profile = {}
         if 'user_location' not in st.session_state:
             st.session_state.user_location = None
+        if 'chat_state' not in st.session_state:
+            st.session_state.chat_state = 'initial'  # initial, asking_duration, asking_location, asking_aspect, ready
+        if 'current_problem' not in st.session_state:
+            st.session_state.current_problem = {}
+        if 'pending_questions' not in st.session_state:
+            st.session_state.pending_questions = []
     
     def get_db_connection(self):
         """Connexion à la base de données thread-safe"""
@@ -256,6 +264,61 @@ class StreamlitPharmacyAssistant:
         c = 2 * math.asin(math.sqrt(a))
         return 6371 * c  # Rayon de la Terre en km
     
+    def analyze_missing_info(self, message):
+        """Analyse quelles informations manquent dans le message"""
+        missing = []
+        
+        # Vérifier la durée
+        duration = self.extract_symptom_duration(message)
+        if not duration:
+            missing.append('duration')
+        
+        # Vérifier la localisation sur le corps
+        body_parts = ['visage', 'front', 'joues', 'nez', 'menton', 'cou', 'dos', 'bras', 'jambes', 'mains', 'pieds', 'corps']
+        has_location = any(part in message.lower() for part in body_parts)
+        if not has_location:
+            missing.append('location')
+        
+        # Vérifier l'aspect/description
+        aspects = ['rouge', 'gonflé', 'sec', 'gras', 'rugueux', 'lisse', 'douloureux', 'qui gratte', 'qui démange']
+        has_aspect = any(aspect in message.lower() for aspect in aspects)
+        if not has_aspect:
+            missing.append('aspect')
+        
+        return missing
+    
+    def generate_follow_up_question(self, missing_info):
+        """Génère une question de suivi selon l'information manquante"""
+        questions = {
+            'duration': "📅 **Depuis combien de temps avez-vous ce problème ?**\n\nExemples : depuis 2 semaines, depuis 3 mois, depuis longtemps...",
+            'location': "📍 **Où exactement sur votre corps se trouve ce problème ?**\n\nExemples : sur le visage, sur les joues, sur le front, sur le dos...",
+            'aspect': "🔍 **Comment décririez-vous l'aspect de votre peau ?**\n\nExemples : rouge et gonflé, sec et rugueux, avec des boutons, qui démange..."
+        }
+        return questions.get(missing_info, "")
+    
+    def save_conversation_to_csv(self, conversation_data):
+        """Sauvegarde la conversation dans un fichier CSV"""
+        csv_file = 'conversations_historique.csv'
+        file_exists = os.path.isfile(csv_file)
+        
+        try:
+            with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+                fieldnames = [
+                    'timestamp', 'age', 'type_peau', 'probleme_initial', 
+                    'duree', 'localisation', 'aspect', 'produits_recommandes', 
+                    'nombre_produits', 'budget_max', 'session_id'
+                ]
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                
+                if not file_exists:
+                    writer.writeheader()
+                
+                writer.writerow(conversation_data)
+            return True
+        except Exception as e:
+            st.error(f"Erreur lors de la sauvegarde : {e}")
+            return False
+    
     def generate_personalized_advice(self, probleme, type_peau, age, duration):
         """Génère des conseils personnalisés"""
         conseils = []
@@ -393,53 +456,128 @@ def main():
             st.error("Base de données non disponible")
     
     # Interface principale
-    tab1, tab2, tab3, tab4 = st.tabs(["💬 Chat Assistant", "💊 Produits", "🏥 Pharmacies", "📊 Analytics"])
+    tab1, tab2, tab3, tab4, tab5 = st.tabs(["💬 Chat Assistant", "💊 Produits", "🏥 Pharmacies", "📊 Analytics", "📝 Historique"])
     
     with tab1:
         st.header("💬 Chat avec l'Assistant")
+        
+        # Afficher les questions en attente
+        if st.session_state.pending_questions:
+            st.info(f"💬 {st.session_state.pending_questions[0]}")
         
         # Zone de saisie
         col1, col2 = st.columns([4, 1])
         
         with col1:
+            if st.session_state.chat_state == 'initial':
+                placeholder_text = "Ex: J'ai des boutons sur le visage depuis 2 semaines..."
+                label_text = "Décrivez votre problème de peau :"
+            else:
+                placeholder_text = "Votre réponse..."
+                label_text = "Répondez à la question ci-dessus :"
+            
             user_message = st.text_area(
-                "Décrivez votre problème de peau :",
-                placeholder="Ex: J'ai des boutons sur le visage depuis 2 semaines...",
-                height=100
+                label_text,
+                placeholder=placeholder_text,
+                height=100,
+                key=f"user_input_{st.session_state.chat_state}"
             )
         
         with col2:
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🚀 Analyser", type="primary", use_container_width=True):
+            button_label = "🚀 Analyser" if st.session_state.chat_state == 'initial' else "📤 Envoyer"
+            if st.button(button_label, type="primary", use_container_width=True):
                 if user_message.strip():
-                    # Traitement du message
+                    # Traitement selon l'état du chat
                     with st.spinner("🤖 Analyse en cours..."):
-                        # Extraction de la durée
-                        duration = assistant.extract_symptom_duration(user_message)
                         
-                        # Recherche de produits
-                        produits = assistant.search_products(
-                            user_message,
-                            st.session_state.user_profile.get('type_peau'),
-                            st.session_state.user_profile.get('budget_max')
-                        )
+                        if st.session_state.chat_state == 'initial':
+                            # Premier message - analyser et poser des questions si nécessaire
+                            st.session_state.current_problem['initial_message'] = user_message
+                            missing_info = assistant.analyze_missing_info(user_message)
+                            
+                            if missing_info:
+                                # Générer les questions de suivi
+                                st.session_state.pending_questions = [
+                                    assistant.generate_follow_up_question(info) 
+                                    for info in missing_info
+                                ]
+                                st.session_state.chat_state = 'asking_questions'
+                                st.session_state.current_problem['responses'] = []
+                                st.rerun()
+                            else:
+                                # Toutes les infos sont présentes, générer les recommandations
+                                st.session_state.chat_state = 'ready'
                         
-                        # Génération de conseils
-                        conseils = assistant.generate_personalized_advice(
-                            user_message,
-                            st.session_state.user_profile.get('type_peau'),
-                            st.session_state.user_profile.get('age'),
-                            duration
-                        )
+                        elif st.session_state.chat_state == 'asking_questions':
+                            # Enregistrer la réponse
+                            st.session_state.current_problem['responses'].append(user_message)
+                            st.session_state.pending_questions.pop(0)
+                            
+                            if not st.session_state.pending_questions:
+                                # Toutes les questions ont été répondues
+                                st.session_state.chat_state = 'ready'
+                            else:
+                                st.rerun()
                         
-                        # Ajouter à l'historique
-                        st.session_state.conversation_history.append({
-                            'user': user_message,
-                            'duration': duration,
-                            'produits': produits,
-                            'conseils': conseils,
-                            'timestamp': datetime.now()
-                        })
+                        # Si prêt, générer les recommandations
+                        if st.session_state.chat_state == 'ready':
+                            # Combiner tous les messages
+                            full_message = st.session_state.current_problem['initial_message']
+                            if 'responses' in st.session_state.current_problem:
+                                full_message += " " + " ".join(st.session_state.current_problem['responses'])
+                            
+                            # Extraction de la durée
+                            duration = assistant.extract_symptom_duration(full_message)
+                            
+                            # Recherche de produits
+                            produits = assistant.search_products(
+                                full_message,
+                                st.session_state.user_profile.get('type_peau'),
+                                st.session_state.user_profile.get('budget_max')
+                            )
+                            
+                            # Génération de conseils
+                            conseils = assistant.generate_personalized_advice(
+                                full_message,
+                                st.session_state.user_profile.get('type_peau'),
+                                st.session_state.user_profile.get('age'),
+                                duration
+                            )
+                            
+                            # Ajouter à l'historique
+                            conversation_entry = {
+                                'user': full_message,
+                                'duration': duration,
+                                'produits': produits,
+                                'conseils': conseils,
+                                'timestamp': datetime.now()
+                            }
+                            st.session_state.conversation_history.append(conversation_entry)
+                            
+                            # Sauvegarder dans CSV
+                            csv_data = {
+                                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                'age': st.session_state.user_profile.get('age', ''),
+                                'type_peau': st.session_state.user_profile.get('type_peau', ''),
+                                'probleme_initial': st.session_state.current_problem['initial_message'],
+                                'duree': duration['texte'] if duration else '',
+                                'localisation': full_message,  # Contient la localisation dans les réponses
+                                'aspect': full_message,  # Contient l'aspect dans les réponses
+                                'produits_recommandes': ', '.join([p['nom'] for p in produits[:5]]),
+                                'nombre_produits': len(produits),
+                                'budget_max': st.session_state.user_profile.get('budget_max', ''),
+                                'session_id': st.session_state.get('session_id', id(st.session_state))
+                            }
+                            assistant.save_conversation_to_csv(csv_data)
+                            
+                            # Réinitialiser l'état du chat
+                            st.session_state.chat_state = 'initial'
+                            st.session_state.current_problem = {}
+                            st.session_state.pending_questions = []
+                            
+                            st.success("✅ Analyse terminée ! Consultez les recommandations ci-dessous.")
+                            st.rerun()
         
         # Suggestions rapides
         st.markdown("**💡 Suggestions rapides :**")
@@ -698,6 +836,123 @@ def main():
             
         except Exception as e:
             st.error(f"Erreur lors du chargement des statistiques: {e}")
+    
+    with tab5:
+        st.header("📝 Historique des Conversations")
+        
+        csv_file = 'conversations_historique.csv'
+        
+        if os.path.isfile(csv_file):
+            try:
+                df_conversations = pd.read_csv(csv_file)
+                
+                st.subheader(f"📊 {len(df_conversations)} conversations enregistrées")
+                
+                # Statistiques rapides
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.metric("Total Conversations", len(df_conversations))
+                
+                with col2:
+                    if 'type_peau' in df_conversations.columns:
+                        type_peau_counts = df_conversations['type_peau'].value_counts()
+                        if len(type_peau_counts) > 0:
+                            st.metric("Type de peau le plus fréquent", type_peau_counts.index[0])
+                
+                with col3:
+                    if 'nombre_produits' in df_conversations.columns:
+                        avg_produits = df_conversations['nombre_produits'].mean()
+                        st.metric("Moyenne produits recommandés", f"{avg_produits:.1f}")
+                
+                st.markdown("---")
+                
+                # Filtres
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    date_filter = st.date_input("Filtrer par date", value=None)
+                
+                with col2:
+                    if 'type_peau' in df_conversations.columns:
+                        type_peau_filter = st.selectbox(
+                            "Filtrer par type de peau",
+                            ["Tous"] + list(df_conversations['type_peau'].dropna().unique())
+                        )
+                
+                # Appliquer les filtres
+                df_filtered = df_conversations.copy()
+                
+                if date_filter:
+                    df_filtered['timestamp'] = pd.to_datetime(df_filtered['timestamp'])
+                    df_filtered = df_filtered[df_filtered['timestamp'].dt.date == date_filter]
+                
+                if 'type_peau_filter' in locals() and type_peau_filter != "Tous":
+                    df_filtered = df_filtered[df_filtered['type_peau'] == type_peau_filter]
+                
+                # Affichage du tableau
+                st.subheader("📋 Détails des Conversations")
+                
+                # Colonnes à afficher
+                display_columns = ['timestamp', 'age', 'type_peau', 'probleme_initial', 'duree', 'nombre_produits']
+                available_columns = [col for col in display_columns if col in df_filtered.columns]
+                
+                if available_columns:
+                    st.dataframe(
+                        df_filtered[available_columns].sort_values('timestamp', ascending=False),
+                        use_container_width=True,
+                        height=400
+                    )
+                
+                # Bouton de téléchargement
+                st.download_button(
+                    label="📥 Télécharger l'historique complet (CSV)",
+                    data=df_conversations.to_csv(index=False).encode('utf-8'),
+                    file_name=f'historique_conversations_{datetime.now().strftime("%Y%m%d")}.csv',
+                    mime='text/csv'
+                )
+                
+                # Graphiques
+                st.markdown("---")
+                st.subheader("📈 Analyses")
+                
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if 'type_peau' in df_conversations.columns:
+                        st.markdown("**Distribution par type de peau**")
+                        type_peau_counts = df_conversations['type_peau'].value_counts()
+                        fig = px.pie(
+                            values=type_peau_counts.values,
+                            names=type_peau_counts.index,
+                            title="Types de peau des utilisateurs"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                
+                with col2:
+                    if 'age' in df_conversations.columns:
+                        st.markdown("**Distribution par âge**")
+                        fig = px.histogram(
+                            df_conversations,
+                            x='age',
+                            nbins=20,
+                            title="Répartition des âges"
+                        )
+                        st.plotly_chart(fig, use_container_width=True)
+                
+            except Exception as e:
+                st.error(f"Erreur lors du chargement de l'historique : {e}")
+        else:
+            st.info("📭 Aucune conversation enregistrée pour le moment. Commencez à utiliser le chat pour créer un historique !")
+            st.markdown("""
+            **L'historique enregistrera automatiquement :**
+            - 📅 Date et heure de la conversation
+            - 👤 Profil utilisateur (âge, type de peau)
+            - 💬 Problème décrit
+            - ⏱️ Durée des symptômes
+            - 💊 Produits recommandés
+            - 📊 Statistiques d'utilisation
+            """)
     
     # Footer
     st.markdown("---")
