@@ -267,7 +267,7 @@ class StreamlitPharmacyAssistant:
                 'excès de sébum', 'sébum', 'sebum',
                 'huileux', 'pores dilatés', 'peau huileuse',
                 'acné hormonal'  #
-            ]
+            ],
 
             'depigmentation': [
                 'depigmentation', 'depigmentee', 'depigmentées',
@@ -387,9 +387,9 @@ class StreamlitPharmacyAssistant:
     def generate_follow_up_question(self, missing_info):
         """Génère une question de suivi selon l'information manquante"""
         questions = {
-            'duration': "📅 **Depuis combien de temps avez-vous ce problème ?**\n\nExemples : depuis 2 semaines, depuis 3 mois, depuis longtemps...",
-            'location': "📍 **Où exactement sur votre corps se trouve ce problème ?**\n\nExemples : sur le visage, sur les joues, sur le front, sur le dos...",
-            'aspect': "🔍 **Comment décririez-vous l'aspect de votre peau ?**\n\nExemples : rouge et gonflé, sec et rugueux, avec des boutons, qui démange..."
+            'duration': " **Depuis combien de temps avez-vous ce problème ?**\n\nExemples : depuis 2 semaines, depuis 3 mois, depuis longtemps...",
+            'location': " **Où exactement sur votre corps se trouve ce problème ?**\n\nExemples : sur le visage, sur les joues, sur le front, sur le dos...",
+            'aspect': " **Comment décririez-vous l'aspect de votre peau ?**\n\nExemples : rouge et gonflé, sec et rugueux, avec des boutons, qui démange..."
         }
         return questions.get(missing_info, "")
     
@@ -445,9 +445,9 @@ class StreamlitPharmacyAssistant:
         
         if 'sèche' in problems:
             conseils.extend([
-                "💧 Hydratez sur peau encore humide après la douche",
-                "🚿 Douches tièdes et courtes (5-10 min)",
-                "💦 Buvez 1,5-2L d'eau par jour"
+                " Hydratez sur peau encore humide après la douche",
+                " Douches tièdes et courtes (5-10 min)",
+                " Buvez 1,5-2L d'eau par jour"
             ])
             
             if 'harmattan' in probleme.lower():
@@ -827,7 +827,7 @@ def main():
                         
                         prix = f"{produit['prix_min']}-{produit['prix_max']} FCFA" if produit['prix_min'] else "Prix non disponible"
                         
-                        african_badge = "🌍 **Produit Africain**" if is_african else ""
+                        african_badge = " **Produit Africain**" if is_african else ""
                         
                         st.markdown(f"""
                         <div class="{card_class}">
@@ -1086,8 +1086,8 @@ def main():
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #666; padding: 1rem;">
-        🏥 Assistant Pharmacien Sénégal - Conseils cosmétiques avec produits africains authentiques<br>
-        Développé avec ❤️ pour les pharmaciens et patients sénégalais
+        Assistant Pharmacien Sénégal - Conseils cosmétiques avec produits africains authentiques<br>
+        Développé pour les pharmaciens et patients sénégalais
     </div>
     """, unsafe_allow_html=True)
 
