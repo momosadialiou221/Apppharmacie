@@ -8,6 +8,7 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 import json
+import unicodedata
 import re
 import math
 import csv
@@ -176,15 +177,15 @@ class StreamlitPharmacyAssistant:
     def categorize_duration(self, jours):
         """Catégorise la durée des symptômes"""
         if jours <= 7:
-            return "🕐 Très récent", "Observez d'abord l'évolution naturelle"
+            return " Très récent", "Observez d'abord l'évolution naturelle"
         elif jours <= 21:
-            return "📅 Récent", "Routine douce et progressive"
+            return " Récent", "Routine douce et progressive"
         elif jours <= 90:
-            return "⏰ Persistant", "Routine plus ciblée nécessaire"
+            return " Persistant", "Routine plus ciblée nécessaire"
         elif jours <= 365:
-            return "📋 Installé", "Approche méthodique requise"
+            return " Installé", "Approche méthodique requise"
         elif jours <= 1095:
-            return "🏥 Chronique", "Consultation dermatologique recommandée"
+            return " Chronique", "Consultation dermatologique recommandée"
         else:
             return "🩺 Chronique ancien", "Suivi médical spécialisé indispensable"
     
@@ -228,13 +229,56 @@ class StreamlitPharmacyAssistant:
         """Extrait les problèmes de peau du texte"""
         problems = []
         synonyms = {
-            'acné': ['acné', 'acne', 'bouton', 'boutons', 'pustule', 'comédon'],
-            'sèche': ['sèche', 'seche', 'sécheresse', 'tiraille', 'déshydrat'],
-            'taches': ['tache', 'taches', 'pigment', 'melasma', 'hyperpigmentation'],
-            'sensible': ['sensible', 'irrité', 'rouge', 'rougeur', 'démangeaison'],
-            'rides': ['ride', 'rides', 'ridule', 'vieillissement', 'anti-âge'],
-            'grasse': ['grasse', 'brillant', 'sébum', 'huileux', 'pores']
+            'acné': [
+                'acné', 'acne', 'bouton', 'boutons', 'pustule', 'pustules',
+                'comédon', 'comedon', 'points noirs', 'points blancs',
+                'imperfection', 'imperfections', 'eruption', 'éruption',
+                'peau à tendance acnéique'
+            ],
+
+            'sèche': [
+                'sèche', 'seche', 'peau sèche', 'sécheresse', 'dessechée',
+                'déshydratée', 'tiraillement', 'tiraille', 'peau qui tire',
+                'xerose', 'xérose' 
+            ],
+
+            'taches': [
+                'tache', 'taches', 'tache brune', 'taches brunes',
+                'hyperpigmentation', 'pigment', 'pigmentaire',
+                'melasma', 'mélasma', 'masque de grossesse',
+                'taches solaires', 'taches pigmentaires'
+            ],
+
+            'sensible': [
+                'sensible', 'irrité', 'irritee', 'irritée',
+                'rouge', 'rougeur', 'rougeurs', 'démangeaison', 'démangeaisons',
+                'réactive', 'reactive', 'intolérante', 'peau fragile'
+            ],
+
+            'rides': [
+                'ride', 'rides', 'ridule', 'ridules',
+                'vieillissement', 'anti-âge', 'anti age',
+                'perte de fermeté', 'relâchement', 'relachement',
+                'peau mature'
+            ],
+
+            'grasse': [
+                'grasse', 'peau grasse', 'brillant', 'brillance',
+                'excès de sébum', 'sébum', 'sebum',
+                'huileux', 'pores dilatés', 'peau huileuse',
+                'acné hormonal'  #
+            ]
+
+            'depigmentation': [
+                'depigmentation', 'depigmentee', 'depigmentées',
+                'teint clair', 'eclaircissement', 'eclaircir',
+                'blanchiment', 'produits eclaircissants',
+                'carotone', 'makari', 'fair and white', 
+                'claire', 'peau claire artificiellement'
+            ],
+
         }
+
         
         text_lower = text.lower()
         for problem, terms in synonyms.items():
@@ -242,6 +286,43 @@ class StreamlitPharmacyAssistant:
                 problems.append(problem)
         
         return problems
+    
+    
+    def normalize_text(text: str) -> str:
+        # Retirer les accents
+        text = ''.join(
+            c for c in unicodedata.normalize('NFD', text)
+            if unicodedata.category(c) != 'Mn'
+        )
+        
+        # Minuscules
+        text = text.lower()
+        
+        # Retirer les caractères inutiles
+        text = re.sub(r'[^a-z0-9\s]', ' ', text)
+        
+        # Nettoyage des espaces
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        return text
+
+
+    # -----------------------------------------------------
+    # 3) Fonction : Détection automatique des mots-clés
+    # -----------------------------------------------------
+
+    def detect_keywords(text: str, synonyms_dict: dict):
+        text_norm = normalize_text(text)
+        detected = []
+
+        for category, words in synonyms_dict.items():
+            for w in words:
+                w_norm = normalize_text(w)
+                if w_norm in text_norm:
+                    detected.append(category)
+                    break
+
+        return list(set(detected))
     
     def get_nearby_pharmacies(self, user_lat, user_lon, h24_only=False, limit=5):
         """Obtient les pharmacies proches"""
@@ -351,15 +432,15 @@ class StreamlitPharmacyAssistant:
         if 'acné' in problems:
             if age and age < 25:
                 conseils.extend([
-                    "🧴 Routine simple : Nettoyant doux + hydratant léger",
-                    "🚫 Évitez de toucher votre visage",
-                    "🧼 Changez vos taies d'oreiller régulièrement"
+                    " Routine simple : Nettoyant doux + hydratant léger",
+                    " Évitez de toucher votre visage",
+                    " Changez vos taies d'oreiller régulièrement"
                 ])
             else:
                 conseils.extend([
-                    "💊 Acné adulte souvent liée au stress et hormones",
-                    "🧴 Produits avec acide salicylique le soir",
-                    "☀️ Protection solaire obligatoire"
+                    " Acné adulte souvent liée au stress et hormones",
+                    " Produits avec acide salicylique le soir",
+                    " Protection solaire obligatoire"
                 ])
         
         if 'sèche' in problems:
