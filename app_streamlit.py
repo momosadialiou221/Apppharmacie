@@ -19,6 +19,7 @@ import plotly.graph_objects as go
 from PIL import Image
 import io
 import numpy as np
+import geocoder
 
 # Configuration de la page
 st.set_page_config(
@@ -585,6 +586,45 @@ def main():
         
         # Géolocalisation simulée (Dakar par défaut)
         st.header("📍 Localisation")
+        
+        
+        # Détection automatique via IP
+        col_auto, col_manual = st.columns([2, 1])
+        
+        with col_auto:
+            if st.button("🌍 Détecter ma position automatiquement", type="primary", use_container_width=True):
+                with st.spinner("🔄 Détection de votre position..."):
+                    try:
+                        g = geocoder.ip('me')
+                        if g.ok and g.latlng:
+                            lat, lon = g.latlng
+                            st.session_state.user_location = (lat, lon)
+                            st.session_state.detected_city = g.city or "Position détectée"
+                            st.success(f"✅ Position détectée: {lat:.4f}, {lon:.4f}")
+                            if g.city:
+                                st.info(f"📍 Ville: {g.city}, {g.country}")
+                            st.rerun()
+                        else:
+                            st.warning("⚠️ Impossible de détecter votre position. Utilisez la sélection manuelle.")
+                    except Exception as e:
+                        st.error(f"❌ Erreur: {str(e)}")
+                        st.info("💡 Utilisez la sélection par ville ci-dessous")
+        
+        with col_manual:
+            if st.button("🔄 Réinitialiser", use_container_width=True):
+                if 'user_location' in st.session_state:
+                    del st.session_state.user_location
+                if 'detected_city' in st.session_state:
+                    del st.session_state.detected_city
+                st.rerun()
+        
+        # Afficher la position actuelle
+        if 'user_location' in st.session_state and st.session_state.user_location:
+            lat, lon = st.session_state.user_location
+            city_info = st.session_state.get('detected_city', 'Position enregistrée')
+            st.success(f"📍 {city_info}: {lat:.4f}, {lon:.4f}")
+        
+        st.markdown("---")
         
         # Bouton de géolocalisation automatique
         if st.button("📍 Détecter ma position automatiquement", type="primary", use_container_width=True):
