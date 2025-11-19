@@ -585,9 +585,29 @@ def main():
         
         # Géolocalisation simulée (Dakar par défaut)
         st.header("📍 Localisation")
+        
+        # Option 1: Coordonnées manuelles (GPS)
+        with st.expander("🌐 Entrer coordonnées GPS"):
+            st.markdown("**Obtenez vos coordonnées GPS :**")
+            st.markdown("- Google Maps : Clic droit sur votre position → Coordonnées")
+            st.markdown("- Smartphone : Applications GPS")
+            
+            col_lat, col_lon = st.columns(2)
+            with col_lat:
+                manual_lat = st.number_input("Latitude", value=14.6937, format="%.4f", step=0.0001)
+            with col_lon:
+                manual_lon = st.number_input("Longitude", value=-17.4441, format="%.4f", step=0.0001)
+            
+            if st.button("✅ Utiliser ces coordonnées"):
+                st.session_state.user_location = (manual_lat, manual_lon)
+                st.success(f"📍 Position GPS: {manual_lat:.4f}, {manual_lon:.4f}")
+        
+        # Option 2: Sélection par ville
+        st.markdown("**Ou sélectionnez votre ville :**")
         ville = st.selectbox(
-            "Votre ville",
-            ["Dakar", "Thiès", "Saint-Louis", "Kaolack"]
+            "Ville",
+            ["Dakar", "Thiès", "Saint-Louis", "Kaolack"],
+            label_visibility="collapsed"
         )
         
         # Coordonnées par défaut selon la ville
@@ -600,7 +620,7 @@ def main():
         
         if ville in coords:
             st.session_state.user_location = coords[ville]
-            st.success(f"📍 Position: {ville}")
+            st.info(f"📍 {ville}: {coords[ville][0]:.4f}, {coords[ville][1]:.4f}")
         
         h24_only = st.checkbox("Pharmacies 24h/24 seulement")
         
@@ -1016,10 +1036,16 @@ def main():
         st.header("💊 Catalogue de Produits")
         
         # Filtres
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            search_term = st.text_input("🔍 Rechercher un produit")
+            probleme_filter = st.selectbox(
+                "Problème",
+                ["Tous", "Acné", "Peau sèche", "Taches", "Rides", "Peau grasse", "Sensible"]
+            )
+        
+        with col2:
+            search_term = st.text_input("🔍 Rechercher")
         
         with col2:
             marque_filter = st.selectbox(
@@ -1027,11 +1053,11 @@ def main():
                 ["Toutes"] + ["La Roche-Posay", "Vichy", "Avène", "Eucerin", "Karité Authentique", "Aloe du Sénégal"]
             )
         
-        with col3:
+        with col4:
             prix_max_filter = st.selectbox(
-                "Prix maximum",
+                "Prix max",
                 [None, 3000, 5000, 10000, 15000],
-                format_func=lambda x: "Tous prix" if x is None else f"≤ {x:,} FCFA"
+                format_func=lambda x: "Tous" if x is None else f"≤{x//1000}k FCFA"
             )
         
         # Affichage des produits
@@ -1040,6 +1066,21 @@ def main():
             
             query = "SELECT * FROM produits WHERE 1=1"
             params = []
+            
+            # Filtre par problème de peau
+            if probleme_filter != "Tous":
+                probleme_map = {
+                    "Acné": "acné",
+                    "Peau sèche": "sèche",
+                    "Taches": "taches",
+                    "Rides": "rides",
+                    "Peau grasse": "grasse",
+                    "Sensible": "sensible"
+                }
+                probleme_key = probleme_map.get(probleme_filter, "")
+                if probleme_key:
+                    query += " AND LOWER(problemes_cibles) LIKE ?"
+                    params.append(f'%{probleme_key}%')
             
             if search_term:
                 query += " AND (LOWER(nom) LIKE ? OR LOWER(description) LIKE ?)"
