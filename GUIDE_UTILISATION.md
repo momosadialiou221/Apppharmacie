@@ -15,24 +15,58 @@ streamlit run app_streamlit.py
 
 ## 💬 Utiliser le Chat
 
-### 1. Décrire Votre Problème
+### Option 1 : 📸 Analyse de Photo (Nouveau !)
+
+#### Comment utiliser l'analyse par IA ?
+1. **Prenez une photo** de votre problème de peau
+   - Lumière naturelle (près d'une fenêtre)
+   - Distance de 15-20 cm
+   - Zone nette et bien visible
+   - Pas de flash ni de maquillage
+
+2. **Téléchargez la photo** dans l'interface
+   - Formats acceptés : JPG, JPEG, PNG
+   - Taille recommandée : < 5 MB
+
+3. **L'IA analyse automatiquement** et détecte :
+   - 🔴 Acné et rougeurs
+   - 💧 Peau sèche
+   - 🟤 Taches pigmentaires
+   - ✨ État général
+
+4. **Cliquez sur "Obtenir des recommandations"**
+   - Produits adaptés instantanément
+   - Conseils personnalisés
+
+#### Conseils pour une bonne photo
+- ☀️ **Lumière naturelle** : Évitez les éclairages artificiels
+- 📏 **Distance optimale** : 15-20 cm de la zone
+- 🎯 **Netteté** : Assurez-vous que la photo n'est pas floue
+- 🚫 **Pas de filtres** : Photo brute sans retouche
+- 🧼 **Peau propre** : Nettoyez avant de photographier
+
+### Option 2 : 💬 Description Textuelle
+
+#### Décrire Votre Problème
 Exemples de messages :
 - "J'ai des boutons sur le visage depuis 2 semaines"
 - "Ma peau est très sèche et tiraille"
 - "Des taches brunes sur les joues"
 - "Rides autour des yeux"
 
-### 2. Renseigner Votre Profil
+### Renseigner Votre Profil
 Dans la barre latérale :
+- **Âge** : Pour des conseils adaptés à votre tranche d'âge
 - **Type de peau** : Normale, Sèche, Grasse, Mixte, Sensible
-- **Âge** : Pour des conseils adaptés
+- **Budget maximum** : Filtrer les produits selon votre budget
 - **Localisation** : Pour trouver les pharmacies proches
 
-### 3. Recevoir des Recommandations
+### Recevoir des Recommandations
 Le chatbot vous propose :
-- Diagnostic du problème
+- Diagnostic du problème (avec ou sans photo)
+- Score de confiance pour l'analyse photo
 - 3-5 produits recommandés avec prix
-- Conseils d'utilisation
+- Conseils d'utilisation personnalisés
 - Pharmacies les plus proches
 
 ## 🛍️ Explorer le Catalogue

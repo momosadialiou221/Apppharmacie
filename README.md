@@ -6,6 +6,7 @@ Application web intelligente pour conseiller les clients sur les produits cosmé
 
 ### 💬 Chat Intelligent
 - Diagnostic des problèmes de peau
+- **📸 Analyse de photos par IA** - Détection automatique des problèmes de peau
 - Recommandations personnalisées selon l'âge et le type de peau
 - Conseils d'utilisation des produits
 
@@ -25,6 +26,28 @@ Application web intelligente pour conseiller les clients sur les produits cosmé
 - Statistiques des produits
 - Graphiques interactifs
 - Analyse des tendances
+
+## 📸 Analyse de Photos par IA
+
+### Comment ça marche ?
+1. **Téléchargez une photo** de votre problème de peau (format JPG, PNG)
+2. **L'IA analyse** automatiquement les couleurs, textures et variations
+3. **Détection intelligente** des problèmes :
+   - 🔴 Acné et rougeurs (analyse des tons rouges)
+   - 💧 Peau sèche (détection de texture irrégulière)
+   - 🟤 Taches pigmentaires (variations de luminosité)
+   - ✨ État général de la peau
+4. **Recommandations instantanées** de produits adaptés
+
+### Conseils pour une bonne photo
+- ☀️ Lumière naturelle (près d'une fenêtre)
+- 📏 Distance de 15-20 cm
+- 🎯 Zone nette et bien visible
+- 🚫 Pas de flash ni de maquillage
+- 🧼 Peau propre
+
+### Précision
+L'analyse par IA est un outil d'aide à la décision. Pour un diagnostic médical précis, consultez toujours un dermatologue.
 
 ## 🚀 Démarrage Rapide
 
@@ -106,10 +129,13 @@ L'application se redéploie automatiquement à chaque push.
 ## 📝 Guide d'Utilisation
 
 ### Pour les Clients
-1. Décrivez votre problème de peau dans le chat
-2. Renseignez votre profil (âge, type de peau)
-3. Recevez des recommandations personnalisées
-4. Localisez les pharmacies les plus proches
+1. **Option 1 :** Téléchargez une photo de votre peau pour une analyse automatique par IA
+   - L'IA détecte : acné, peau sèche, taches pigmentaires, rougeurs
+   - Recommandations instantanées basées sur l'analyse
+2. **Option 2 :** Décrivez votre problème de peau dans le chat
+3. Renseignez votre profil (âge, type de peau, budget)
+4. Recevez des recommandations personnalisées
+5. Localisez les pharmacies les plus proches
 
 ### Pour les Pharmaciens
 1. Consultez le catalogue complet

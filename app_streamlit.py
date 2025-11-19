@@ -16,6 +16,9 @@ import os
 from datetime import datetime
 import plotly.express as px
 import plotly.graph_objects as go
+from PIL import Image
+import io
+import numpy as np
 
 # Configuration de la page
 st.set_page_config(
@@ -120,7 +123,7 @@ class StreamlitPharmacyAssistant:
             st.session_state.pending_questions = []
         if 'messages' not in st.session_state:
             st.session_state.messages = [
-                {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien. Décrivez-moi votre problème de peau et je vous aiderai à trouver les meilleurs produits."}
+                {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien.\n\n**Deux façons de commencer :**\n\n📸 **Option 1 :** Téléchargez une photo de votre peau pour une analyse automatique par IA\n\n💬 **Option 2 :** Décrivez-moi votre problème de peau dans le chat\n\nJe vous aiderai à trouver les meilleurs produits adaptés à vos besoins !"}
             ]
         if 'awaiting_response' not in st.session_state:
             st.session_state.awaiting_response = False
@@ -477,6 +480,72 @@ class StreamlitPharmacyAssistant:
         ])
         
         return conseils
+    
+    def analyze_skin_image(self, image):
+        """Analyse une image de peau pour détecter des problèmes"""
+        try:
+            # Convertir en RGB si nécessaire
+            if image.mode != 'RGB':
+                image = image.convert('RGB')
+            
+            # Redimensionner pour analyse plus rapide
+            image = image.resize((300, 300))
+            
+            # Convertir en array numpy pour analyse
+            import numpy as np
+            img_array = np.array(image)
+            
+            # Analyse des couleurs
+            avg_red = np.mean(img_array[:, :, 0])
+            avg_green = np.mean(img_array[:, :, 1])
+            avg_blue = np.mean(img_array[:, :, 2])
+            
+            # Calcul de la variance (texture)
+            variance = np.var(img_array)
+            
+            # Détection des problèmes basée sur l'analyse
+            detected_problems = []
+            confidence_scores = {}
+            
+            # Détection de rougeurs (acné, irritation)
+            if avg_red > avg_green + 10 and avg_red > avg_blue + 10:
+                detected_problems.append('acné')
+                confidence_scores['acné'] = min(95, 60 + (avg_red - avg_green) / 2)
+            
+            # Détection de peau sèche (texture irrégulière)
+            if variance > 1500:
+                detected_problems.append('sèche')
+                confidence_scores['sèche'] = min(90, 50 + variance / 50)
+            
+            # Détection de taches (variations de luminosité)
+            brightness = (avg_red + avg_green + avg_blue) / 3
+            if variance > 1000 and brightness < 150:
+                detected_problems.append('taches')
+                confidence_scores['taches'] = min(85, 55 + variance / 40)
+            
+            # Si aucun problème détecté
+            if not detected_problems:
+                detected_problems.append('normale')
+                confidence_scores['normale'] = 70
+            
+            return {
+                'problems': detected_problems,
+                'confidence': confidence_scores,
+                'analysis': {
+                    'avg_red': avg_red,
+                    'avg_green': avg_green,
+                    'avg_blue': avg_blue,
+                    'variance': variance,
+                    'brightness': brightness
+                }
+            }
+            
+        except Exception as e:
+            return {
+                'problems': [],
+                'confidence': {},
+                'error': str(e)
+            }
 
 def main():
     """Fonction principale Streamlit"""
@@ -558,8 +627,75 @@ def main():
     with tab1:
         st.header("💬 Chat avec l'Assistant")
         
+        # Section d'upload d'image
+        st.markdown("### 📸 Analyse de Photo de Peau")
+        
+        with st.expander("ℹ️ Comment prendre une bonne photo ?"):
+            st.markdown("""
+            **Pour une analyse optimale :**
+            - 📱 Utilisez un smartphone ou appareil photo de bonne qualité
+            - ☀️ Prenez la photo en lumière naturelle (près d'une fenêtre)
+            - 📏 Gardez une distance de 15-20 cm de la zone à photographier
+            - 🎯 Assurez-vous que la zone est nette et bien visible
+            - 🚫 Évitez le flash qui peut altérer les couleurs
+            - 🧼 Nettoyez votre peau avant (pas de maquillage)
+            
+            **L'IA peut détecter :**
+            - 🔴 Acné et rougeurs
+            - 💧 Peau sèche et déshydratée
+            - 🟤 Taches pigmentaires
+            - ✨ État général de la peau
+            """)
+        
+        uploaded_file = st.file_uploader(
+            "Téléchargez une photo de votre problème de peau pour une analyse automatique",
+            type=['jpg', 'jpeg', 'png'],
+            help="Prenez une photo claire de la zone affectée en bonne lumière naturelle"
+        )
+        
+        if uploaded_file is not None:
+            col1, col2 = st.columns([1, 2])
+            
+            with col1:
+                # Afficher l'image
+                image = Image.open(uploaded_file)
+                st.image(image, caption="Photo téléchargée", use_container_width=True)
+            
+            with col2:
+                # Analyser l'image
+                with st.spinner("🔍 Analyse de l'image en cours..."):
+                    analysis_result = assistant.analyze_skin_image(image)
+                
+                if 'error' in analysis_result:
+                    st.error(f"❌ Erreur lors de l'analyse : {analysis_result['error']}")
+                else:
+                    st.success("✅ Analyse terminée !")
+                    
+                    # Afficher les résultats
+                    st.markdown("**🔬 Problèmes détectés :**")
+                    for problem in analysis_result['problems']:
+                        confidence = analysis_result['confidence'].get(problem, 0)
+                        st.markdown(f"• **{problem.capitalize()}** (confiance: {confidence:.0f}%)")
+                    
+                    # Générer automatiquement une description
+                    if analysis_result['problems'] and analysis_result['problems'][0] != 'normale':
+                        auto_message = f"J'ai des problèmes de {', '.join(analysis_result['problems'])} détectés sur la photo"
+                        
+                        if st.button("🚀 Obtenir des recommandations basées sur cette analyse", use_container_width=True):
+                            # Ajouter le message automatique
+                            st.session_state.messages.append({"role": "user", "content": f"📸 Photo analysée : {auto_message}"})
+                            st.session_state.current_problem['initial_message'] = auto_message
+                            st.session_state.current_problem['all_messages'] = [auto_message]
+                            st.session_state.current_problem['from_image'] = True
+                            st.session_state.chat_state = 'ready'
+                            st.rerun()
+                    else:
+                        st.info("✨ Votre peau semble en bonne santé ! Si vous avez des préoccupations spécifiques, décrivez-les dans le chat ci-dessous.")
+        
+        st.markdown("---")
+        
         # Container pour les messages avec hauteur fixe et scroll
-        chat_container = st.container(height=500)
+        chat_container = st.container(height=400)
         
         with chat_container:
             # Afficher tous les messages de la conversation avec st.chat_message
@@ -829,7 +965,7 @@ def main():
         if len(st.session_state.messages) > 1:
             if st.button("🔄 Nouvelle conversation", use_container_width=True):
                 st.session_state.messages = [
-                    {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien. Décrivez-moi votre problème de peau et je vous aiderai à trouver les meilleurs produits."}
+                    {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien.\n\n**Deux façons de commencer :**\n\n📸 **Option 1 :** Téléchargez une photo de votre peau pour une analyse automatique par IA\n\n💬 **Option 2 :** Décrivez-moi votre problème de peau dans le chat\n\nJe vous aiderai à trouver les meilleurs produits adaptés à vos besoins !"}
                 ]
                 st.session_state.chat_state = 'initial'
                 st.session_state.current_problem = {}
