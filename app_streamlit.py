@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 Assistant Pharmacien Sénégal - Version Streamlit
 Déploiement web avec interface moderne et interactive
@@ -659,7 +659,7 @@ def main():
             with col1:
                 # Afficher l'image
                 image = Image.open(uploaded_file)
-                st.image(image, caption="Photo téléchargée", use_container_width=True)
+                st.image(image, caption="Photo téléchargée", use_column_width=True)
             
             with col2:
                 # Analyser l'image
@@ -681,7 +681,7 @@ def main():
                     if analysis_result['problems'] and analysis_result['problems'][0] != 'normale':
                         auto_message = f"J'ai des problèmes de {', '.join(analysis_result['problems'])} détectés sur la photo"
                         
-                        if st.button("🚀 Obtenir des recommandations basées sur cette analyse", use_container_width=True):
+                        if st.button("🚀 Obtenir des recommandations basées sur cette analyse"):
                             # Ajouter le message automatique
                             st.session_state.messages.append({"role": "user", "content": f"📸 Photo analysée : {auto_message}"})
                             st.session_state.current_problem['initial_message'] = auto_message
@@ -709,17 +709,17 @@ def main():
             col1, col2, col3 = st.columns(3)
             
             with col1:
-                if st.button("🔴 Problème d'acné", use_container_width=True):
+                if st.button("🔴 Problème d'acné"):
                     st.session_state.quick_prompt = "J'ai de l'acné sur le visage"
                     st.rerun()
             
             with col2:
-                if st.button("💧 Peau sèche", use_container_width=True):
+                if st.button("💧 Peau sèche"):
                     st.session_state.quick_prompt = "Ma peau est très sèche"
                     st.rerun()
             
             with col3:
-                if st.button("🟤 Taches brunes", use_container_width=True):
+                if st.button("🟤 Taches brunes"):
                     st.session_state.quick_prompt = "J'ai des taches brunes"
                     st.rerun()
         
@@ -963,7 +963,7 @@ def main():
         
         # Bouton pour nouvelle conversation
         if len(st.session_state.messages) > 1:
-            if st.button("🔄 Nouvelle conversation", use_container_width=True):
+            if st.button("🔄 Nouvelle conversation"):
                 st.session_state.messages = [
                     {"role": "assistant", "content": "👋 Bonjour ! Je suis votre assistant pharmacien.\n\n**Deux façons de commencer :**\n\n📸 **Option 1 :** Téléchargez une photo de votre peau pour une analyse automatique par IA\n\n💬 **Option 2 :** Décrivez-moi votre problème de peau dans le chat\n\nJe vous aiderai à trouver les meilleurs produits adaptés à vos besoins !"}
                 ]
@@ -1173,7 +1173,7 @@ def main():
                     df_prix = pd.DataFrame(prix_data, columns=['Gamme de Prix', 'Nombre'])
                     fig_prix = px.pie(df_prix, values='Nombre', names='Gamme de Prix', 
                                      title='Distribution des Prix (FCFA)')
-                    st.plotly_chart(fig_prix, use_container_width=True)
+                    st.plotly_chart(fig_prix, use_column_width=True)
             
             with col2:
                 # Pharmacies par ville
@@ -1188,7 +1188,7 @@ def main():
                     df_ville = pd.DataFrame(ville_data, columns=['Ville', 'Nombre'])
                     fig_ville = px.bar(df_ville, x='Ville', y='Nombre', 
                                       title='Pharmacies par Ville')
-                    st.plotly_chart(fig_ville, use_container_width=True)
+                    st.plotly_chart(fig_ville, use_column_width=True)
             
             # Top marques
             st.subheader("🏷️ Top Marques")
@@ -1203,7 +1203,7 @@ def main():
             
             if marques_data:
                 df_marques = pd.DataFrame(marques_data, columns=['Marque', 'Produits'])
-                st.dataframe(df_marques, use_container_width=True)
+                st.dataframe(df_marques, use_column_width=True)
             
             conn.close()
             
@@ -1273,7 +1273,7 @@ def main():
                 if available_columns:
                     st.dataframe(
                         df_filtered[available_columns].sort_values('timestamp', ascending=False),
-                        use_container_width=True,
+                        use_column_width=True,
                         height=400
                     )
                 
@@ -1300,7 +1300,7 @@ def main():
                             names=type_peau_counts.index,
                             title="Types de peau des utilisateurs"
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_column_width=True)
                 
                 with col2:
                     if 'age' in df_conversations.columns:
@@ -1311,7 +1311,7 @@ def main():
                             nbins=20,
                             title="Répartition des âges"
                         )
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, use_column_width=True)
                 
             except Exception as e:
                 st.error(f"Erreur lors du chargement de l'historique : {e}")
@@ -1338,3 +1338,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
