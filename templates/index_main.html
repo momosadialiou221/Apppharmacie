@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Pharmacien Sénégal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_main.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-hospital"></i>
+                <span>Assistant Pharmacien Sénégal</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="active">Accueil</a></li>
+                <li><a href="/produits">Produits</a></li>
+                <li><a href="/pharmacies">Pharmacies</a></li>
+                <li><a href="/historique">Historique</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>🏥 Bienvenue sur votre Assistant Pharmacien</h1>
+            <p>Trouvez les meilleurs produits cosmétiques et pharmacies au Sénégal</p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <i class="fas fa-box"></i>
+                    <h3 id="total-produits">370+</h3>
+                    <p>Produits</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-hospital"></i>
+                    <h3 id="total-pharmacies">164+</h3>
+                    <p>Pharmacies</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-clock"></i>
+                    <h3 id="pharmacies-24h">47+</h3>
+                    <p>Ouvertes 24h/24</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <div class="container">
+            <h2>Que recherchez-vous ?</h2>
+            <div class="action-grid">
+                <a href="/produits?search=acné" class="action-card">
+                    <i class="fas fa-face-frown"></i>
+                    <h3>Problème d'acné</h3>
+                    <p>Trouvez des solutions efficaces</p>
+                </a>
+                <a href="/produits?search=hydratant" class="action-card">
+                    <i class="fas fa-droplet"></i>
+                    <h3>Peau sèche</h3>
+                    <p>Produits hydratants</p>
+                </a>
+                <a href="/produits?search=taches" class="action-card">
+                    <i class="fas fa-sun"></i>
+                    <h3>Taches brunes</h3>
+                    <p>Éclaircissants et uniformisants</p>
+                </a>
+                <a href="/pharmacies?h24=true" class="action-card">
+                    <i class="fas fa-moon"></i>
+                    <h3>Pharmacie de garde</h3>
+                    <p>Ouvertes 24h/24</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products -->
+    <section class="featured-products">
+        <div class="container">
+            <h2>Produits Populaires</h2>
+            <div class="products-grid" id="featured-products">
+                <!-- Chargé dynamiquement -->
+            </div>
+            <div class="text-center">
+                <a href="/produits" class="btn btn-primary">Voir tous les produits</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Widget Flottant -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header" id="chatHeader">
+            <div class="chat-header-content">
+                <i class="fas fa-comments"></i>
+                <span>Assistant Chat</span>
+            </div>
+            <button class="chat-close" id="chatClose">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <div class="message-content">
+                        👋 Bonjour ! Je suis votre assistant pharmacien. Comment puis-je vous aider aujourd'hui ?
+                    </div>
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" id="chatInput" placeholder="Tapez votre message..." />
+                <button id="chatSend">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton Chat Flottant -->
+    <button class="chat-button" id="chatButton">
+        <i class="fas fa-comments"></i>
+        <span class="chat-badge">1</span>
+    </button>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Assistant Pharmacien Sénégal. Fait avec ❤️ pour le Sénégal</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='script_main.js') }}"></script>
+</body>
+</html>
